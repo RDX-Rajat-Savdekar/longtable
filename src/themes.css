@@ -16,6 +16,32 @@
  *   4. Switch to it via `data-theme` on <html> in index.html.
  */
 
+/* Longtable — walnut surface, linen type, paper slips. */
+[data-theme="longtable"] {
+  color-scheme: dark;
+  font-family: "Source Sans 3", sans-serif;
+  --color-background: #3c2a1e;
+  --color-foreground: #f6f1e6;
+  --color-card: #f6f1e6;
+  --color-card-foreground: #1c1915;
+  --color-popover: #f6f1e6;
+  --color-popover-foreground: #1c1915;
+  --color-primary: #2f5d45;
+  --color-primary-foreground: #f6f1e6;
+  --color-secondary: #4a3426;
+  --color-secondary-foreground: #f6f1e6;
+  --color-muted: #4a3426;
+  --color-muted-foreground: #e7dcc8;
+  --color-accent: #4a3426;
+  --color-accent-foreground: #f6f1e6;
+  --color-destructive: #8f2d2d;
+  --color-destructive-foreground: #f6f1e6;
+  --color-border: rgba(231, 220, 200, 0.28);
+  --color-input: rgba(231, 220, 200, 0.28);
+  --color-ring: #2f5d45;
+  --radius: 2px;
+}
+
 /* Paper — light example theme; shows the full token contract incl.
  * `color-scheme: light`. Replace or delete it once the app has its own. */
 [data-theme="paper"] {

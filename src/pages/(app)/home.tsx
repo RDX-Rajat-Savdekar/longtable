@@ -1,25 +1,20 @@
-/**
- * Placeholder home page — replace this with the app's real home.
- *
- * This is intentionally unstyled scaffolding, not a design to build on.
- * Design the app's own look (layout, theme tokens, typography) from your
- * product's point of view instead of extending this page.
- */
-
+import { Link } from 'react-router-dom'
 import { useAuthProfileReady } from 'deepspace'
-import { APP_NAME } from '../../constants'
 
 export default function HomePage() {
   const { isSignedIn, user } = useAuthProfileReady({ requireUser: true })
 
   return (
-    <div className="flex min-h-full flex-col items-center justify-center gap-3 bg-background px-6 text-center text-foreground">
-      <h1 className="text-2xl font-semibold">{APP_NAME}</h1>
-      <p className="max-w-md text-sm text-muted-foreground">
-        This is a placeholder page. Replace <code>src/pages/(app)/home.tsx</code>{' '}
-        with the app&apos;s real home, and give the app its own theme in{' '}
-        <code>src/themes.css</code>.
+    <div className="flex min-h-full flex-col justify-center gap-4 px-8 py-16 text-foreground">
+      <h1 className="text-3xl" style={{ fontFamily: 'Fraunces, Georgia, serif', fontWeight: 560 }}>
+        The table is set.
+      </h1>
+      <p className="max-w-md text-muted-foreground">
+        Plans, seats, and the notepad live on the table. Sign in to sit down.
       </p>
+      <Link to="/table" className="w-fit border border-border px-4 py-2">
+        Open the table
+      </Link>
       {isSignedIn && user && (
         <p className="text-sm text-muted-foreground">Signed in as {user.name ?? user.email}</p>
       )}
