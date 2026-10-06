@@ -8,6 +8,7 @@ dist
 .worker-bundle.js
 *.tgz
 test-results/
+output/
 playwright-report/
 src/router.ts
 src/modals.tsx

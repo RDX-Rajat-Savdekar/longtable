@@ -17,5 +17,8 @@
 
 export const integrations: Record<string, { billing: 'developer' | 'user' }> = {
   google: { billing: 'user' },
-  // openai: { billing: 'developer' },
+  // The host pays. Every button that calls these is behind sign-in.
+  openweathermap: { billing: 'developer' },
+  anthropic: { billing: 'developer' },
+  email: { billing: 'developer' },
 }
