@@ -20,8 +20,7 @@ export default function Yard() {
   const [paint, setPaint] = useState<string>(PAINTS[1].color)
   const [spot, setSpot] = useState({ x: COLS / 2, z: ROWS / 2 })
   const [note, setNote] = useState('')
-  const spotRef = useRef(spot)
-  spotRef.current = spot
+  const live = useRef({ x: COLS / 2, z: ROWS / 2 })
 
   const blocksQuery = useQuery<BlockData>('blocks')
   const yardQuery = useQuery<YardData>('yard')
@@ -47,6 +46,14 @@ export default function Yard() {
     }
     return [...byCell.values()]
   }, [blocksQuery.records])
+
+  const painted = useMemo(() => {
+    const cells = Array.from({ length: ROWS * COLS }, () => '')
+    for (const pixel of pixels) {
+      if (pixel.x >= 0 && pixel.x < COLS && pixel.z >= 0 && pixel.z < ROWS) cells[pixel.z * COLS + pixel.x] = pixel.color
+    }
+    return cells
+  }, [pixels])
 
   const match = likeness(pixels)
   const yard = yardQuery.records[0]
@@ -140,6 +147,7 @@ export default function Yard() {
           me={me}
           others={others}
           sky={skyColor(skyText)}
+          live={live.current}
           onPaint={(x, z) => void paintCell(x, z)}
           onMove={(x, z) => setSpot({ x, z })}
         />
@@ -156,16 +164,39 @@ export default function Yard() {
         <p>Click a painted square to clear it.</p>
       </aside>
 
-      <aside className="yard-card" aria-label="The horse to copy">
-        <div className="pixel-art" style={{ gridTemplateColumns: `repeat(${COLS}, 8px)` }}>
-          {HORSE.flat().map((color, index) => (
-            <i key={index} style={{ background: color || '#4f8a5b' }} />
-          ))}
+      <aside className="yard-corner">
+        <div className="yard-card" aria-label="Where everyone is">
+          <div className="map-board" style={{ gridTemplateColumns: `repeat(${COLS}, 8px)` }}>
+            {painted.map((color, index) => (
+              <i key={index} style={{ background: color || '#4f8a5b' }} />
+            ))}
+            <MapDot live={live.current} color={who.color} />
+            {others.map((person) => (
+              <span
+                key={person.id}
+                className="map-dot"
+                title={person.name}
+                style={{
+                  left: `${(person.x / COLS) * 100}%`,
+                  top: `${(person.z / ROWS) * 100}%`,
+                  background: person.color,
+                }}
+              />
+            ))}
+          </div>
         </div>
-        <div className="likeness" role="meter" aria-valuenow={match} aria-valuemin={0} aria-valuemax={100} aria-label={`${match}% like the horse`}>
-          <span style={{ width: `${match}%` }} />
+
+        <div className="yard-card" aria-label="The horse to copy">
+          <div className="pixel-art" style={{ gridTemplateColumns: `repeat(${COLS}, 8px)` }}>
+            {HORSE.flat().map((color, index) => (
+              <i key={index} style={{ background: color || '#4f8a5b' }} />
+            ))}
+          </div>
+          <div className="likeness" role="meter" aria-valuenow={match} aria-valuemin={0} aria-valuemax={100} aria-label={`${match}% like the horse`}>
+            <span style={{ width: `${match}%` }} />
+          </div>
+          <p>{match}% like the horse</p>
         </div>
-        <p>{match}% like the horse</p>
       </aside>
 
       <aside className="yard-who">
@@ -196,4 +227,24 @@ export default function Yard() {
       {note && <p className="yard-note">{note}</p>}
     </div>
   )
+}
+
+function MapDot({ live, color }: { live: { x: number; z: number }; color: string }) {
+  const dot = useRef<HTMLSpanElement>(null)
+
+  useEffect(() => {
+    let frame = 0
+    const tick = () => {
+      const el = dot.current
+      if (el) {
+        el.style.left = `${(live.x / COLS) * 100}%`
+        el.style.top = `${(live.z / ROWS) * 100}%`
+      }
+      frame = requestAnimationFrame(tick)
+    }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [live])
+
+  return <span ref={dot} className="map-dot map-dot-me" style={{ background: color }} />
 }

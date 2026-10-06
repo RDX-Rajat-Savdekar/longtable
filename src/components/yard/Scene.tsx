@@ -16,6 +16,7 @@ export function YardScene({
   me,
   others,
   sky,
+  live,
   onPaint,
   onMove,
 }: {
@@ -23,6 +24,7 @@ export function YardScene({
   me: Person
   others: Person[]
   sky: string
+  live: { x: number; z: number }
   onPaint: (x: number, z: number) => void
   onMove: (x: number, z: number) => void
 }) {
@@ -37,20 +39,21 @@ export function YardScene({
       {pixels.map((pixel) => (
         <PixelMesh key={pixel.id} pixel={pixel} onPaint={onPaint} />
       ))}
-      <Walker me={me} onMove={onMove} />
+      <Walker me={me} live={live} onMove={onMove} />
       {others.map((person) => (
         <PersonMesh key={person.id} person={person} />
       ))}
-      <FollowCamera x={me.x} z={me.z} />
+      <FollowCamera live={live} />
     </>
   )
 }
 
-function FollowCamera({ x, z }: { x: number; z: number }) {
+function FollowCamera({ live }: { live: { x: number; z: number } }) {
   const { camera } = useThree()
   useFrame(() => {
+    const { x, z } = live
     desired.set(x + 5.2, 7.4, z + 5.2)
-    camera.position.lerp(desired, 0.12)
+    camera.position.copy(desired)
     look.set(x, 0, z)
     camera.lookAt(look)
   })
@@ -106,10 +109,9 @@ function PixelMesh({ pixel, onPaint }: { pixel: YardPixel; onPaint: (x: number, 
   )
 }
 
-function Walker({ me, onMove }: { me: Person; onMove: (x: number, z: number) => void }) {
+function Walker({ me, live, onMove }: { me: Person; live: { x: number; z: number }; onMove: (x: number, z: number) => void }) {
   const group = useRef<import('three').Group>(null)
   const keys = useRef<Record<string, boolean>>({})
-  const spot = useRef({ x: me.x, z: me.z })
   const sent = useRef(0)
 
   useEffect(() => {
@@ -127,16 +129,21 @@ function Walker({ me, onMove }: { me: Person; onMove: (x: number, z: number) => 
     }
   }, [])
 
+  useEffect(() => {
+    group.current?.position.set(live.x, 0, live.z)
+  }, [live])
+
   useFrame((_, delta) => {
     const speed = 3.4 * Math.min(delta, 0.05)
-    let { x, z } = spot.current
+    let { x, z } = live
     if (keys.current['w'] || keys.current['arrowup']) z -= speed
     if (keys.current['s'] || keys.current['arrowdown']) z += speed
     if (keys.current['a'] || keys.current['arrowleft']) x -= speed
     if (keys.current['d'] || keys.current['arrowright']) x += speed
     x = Math.min(COLS - 0.3, Math.max(0.3, x))
     z = Math.min(ROWS - 0.3, Math.max(0.3, z))
-    spot.current = { x, z }
+    live.x = x
+    live.z = z
     if (group.current) group.current.position.set(x, 0, z)
     const now = performance.now()
     if (now - sent.current > 120) {
@@ -146,7 +153,7 @@ function Walker({ me, onMove }: { me: Person; onMove: (x: number, z: number) => 
   })
 
   return (
-    <group ref={group} position={[me.x, 0, me.z]}>
+    <group ref={group}>
       <PersonMesh person={{ ...me, x: 0, z: 0 }} local />
     </group>
   )

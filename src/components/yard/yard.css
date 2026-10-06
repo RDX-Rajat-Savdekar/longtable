@@ -14,7 +14,7 @@
 
 .yard-title,
 .yard-rules,
-.yard-card,
+.yard-corner,
 .yard-who,
 .yard-tools,
 .yard-note {
@@ -24,9 +24,8 @@
 
 .yard-title {
   top: 0.8rem;
-  left: 50%;
-  transform: translateX(-50%);
-  text-align: center;
+  left: 0.8rem;
+  text-align: left;
   color: #1c1915;
   text-shadow: 0 1px 0 rgba(246, 241, 230, 0.8);
 }
@@ -43,7 +42,7 @@
 }
 
 .yard-rules {
-  top: 0.8rem;
+  top: 5.4rem;
   left: 0.8rem;
   background: #f6f1e6;
   padding: 0.7rem 0.85rem;
@@ -59,11 +58,47 @@
   margin-top: 0.2rem;
 }
 
-.yard-card {
+.yard-corner {
   top: 0.8rem;
   right: 0.8rem;
+  display: flex;
+  gap: 0.45rem;
+  align-items: flex-start;
+}
+
+.yard-card {
   background: #f6f1e6;
   padding: 0.5rem 0.5rem 0.4rem;
+}
+
+.map-board {
+  position: relative;
+  display: grid;
+  border: 2px solid #241c16;
+  line-height: 0;
+}
+
+.map-board i {
+  width: 8px;
+  height: 8px;
+  display: block;
+}
+
+.map-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: 1px solid #f6f1e6;
+  box-shadow: 0 0 0 1px #241c16;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.map-dot-me {
+  width: 8px;
+  height: 8px;
+  z-index: 1;
 }
 
 .pixel-art {
