@@ -11,6 +11,7 @@ export const blocksSchema: CollectionSchema = {
     { name: 'slot', storage: 'number', interpretation: 'plain', required: true },
     { name: 'kind', storage: 'text', interpretation: 'plain', required: true },
     { name: 'color', storage: 'text', interpretation: 'plain', required: true },
+    { name: 'level', storage: 'text', interpretation: 'plain', default: '' },
   ],
   permissions: {
     '*': open,

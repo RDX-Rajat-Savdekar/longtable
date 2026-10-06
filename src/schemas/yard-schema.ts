@@ -11,6 +11,7 @@ export const yardSchema: CollectionSchema = {
     { name: 'title', storage: 'text', interpretation: 'plain', default: '' },
     { name: 'skyAt', storage: 'text', interpretation: 'plain', default: '' },
     { name: 'titleAt', storage: 'text', interpretation: 'plain', default: '' },
+    { name: 'level', storage: 'text', interpretation: 'plain', default: 'logo' },
   ],
   permissions: {
     '*': open,

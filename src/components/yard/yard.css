@@ -15,8 +15,8 @@
 .yard-title,
 .yard-rules,
 .yard-corner,
+.yard-stack,
 .yard-who,
-.yard-tools,
 .yard-note {
   position: absolute;
   z-index: 2;
@@ -78,9 +78,10 @@
   line-height: 0;
 }
 
-.map-board i {
-  width: 8px;
-  height: 8px;
+.map-board i,
+.pixel-art i {
+  width: 7px;
+  height: 7px;
   display: block;
 }
 
@@ -105,12 +106,6 @@
   display: grid;
   border: 2px solid #241c16;
   line-height: 0;
-}
-
-.pixel-art i {
-  width: 8px;
-  height: 8px;
-  display: block;
 }
 
 .likeness {
@@ -159,8 +154,35 @@
   border-radius: 999px;
 }
 
+.yard-stack {
+  left: 50%;
+  bottom: 0.8rem;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.yard-cheat,
+.yard-levels,
+.yard-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #f6f1e6;
+  padding: 0.35rem;
+}
+
+.yard-cheat span {
+  font-size: 0.85rem;
+  padding: 0 0.15rem;
+}
+
 .yard-who button,
-.yard-tools button {
+.yard-tools button,
+.yard-cheat button,
+.yard-levels button {
   background: transparent;
   border: 1px solid rgba(28, 25, 21, 0.35);
   color: #1c1915;
@@ -169,14 +191,9 @@
   cursor: pointer;
 }
 
-.yard-tools {
-  left: 50%;
-  bottom: 0.9rem;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 0.4rem;
-  background: #f6f1e6;
-  padding: 0.4rem;
+.yard-levels button[data-on='true'] {
+  background: #1c1915;
+  color: #f6f1e6;
 }
 
 .yard-tools button[data-on='true'] {
@@ -184,14 +201,16 @@
   outline-offset: 1px;
 }
 
-.yard-tools button:disabled {
+.yard-tools button:disabled,
+.yard-cheat button:disabled,
+.yard-levels button:disabled {
   opacity: 0.45;
   cursor: default;
 }
 
 .yard-note {
   left: 50%;
-  bottom: 4.2rem;
+  bottom: 8.6rem;
   transform: translateX(-50%);
   margin: 0;
   background: #f6f1e6;

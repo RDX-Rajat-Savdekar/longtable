@@ -3,7 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { Billboard, Text } from '@react-three/drei'
 import type { ThreeEvent } from '@react-three/fiber'
 import { BufferGeometry, Float32BufferAttribute, Vector3 } from 'three'
-import { COLS, ROWS, inYard } from '../../yard/place'
+import { inYard } from '../../yard/place'
 
 export type YardPixel = { id: string; x: number; z: number; color: string }
 export type Person = { id: string; name: string; color: string; quirk: string; x: number; z: number }
@@ -16,6 +16,8 @@ export function YardScene({
   me,
   others,
   sky,
+  cols,
+  rows,
   live,
   onPaint,
   onMove,
@@ -24,6 +26,8 @@ export function YardScene({
   me: Person
   others: Person[]
   sky: string
+  cols: number
+  rows: number
   live: { x: number; z: number }
   onPaint: (x: number, z: number) => void
   onMove: (x: number, z: number) => void
@@ -34,12 +38,12 @@ export function YardScene({
       <fog attach="fog" args={[sky, 16, 36]} />
       <hemisphereLight args={['#f6f1e6', '#3d6b45', 1.15]} />
       <directionalLight position={[8, 14, 6]} intensity={1.15} />
-      <Grass onPaint={onPaint} />
-      <CellLines />
+      <Grass cols={cols} rows={rows} onPaint={onPaint} />
+      <CellLines cols={cols} rows={rows} />
       {pixels.map((pixel) => (
         <PixelMesh key={pixel.id} pixel={pixel} onPaint={onPaint} />
       ))}
-      <Walker me={me} live={live} onMove={onMove} />
+      <Walker me={me} live={live} cols={cols} rows={rows} onMove={onMove} />
       {others.map((person) => (
         <PersonMesh key={person.id} person={person} />
       ))}
@@ -60,34 +64,34 @@ function FollowCamera({ live }: { live: { x: number; z: number } }) {
   return null
 }
 
-function Grass({ onPaint }: { onPaint: (x: number, z: number) => void }) {
+function Grass({ cols, rows, onPaint }: { cols: number; rows: number; onPaint: (x: number, z: number) => void }) {
   return (
     <mesh
       rotation-x={-Math.PI / 2}
-      position={[COLS / 2, 0, ROWS / 2]}
+      position={[cols / 2, 0, rows / 2]}
       onClick={(event) => {
         event.stopPropagation()
         const x = Math.floor(event.point.x)
         const z = Math.floor(event.point.z)
-        if (inYard(x, z)) onPaint(x, z)
+        if (inYard(x, z, cols, rows)) onPaint(x, z)
       }}
     >
-      <planeGeometry args={[COLS, ROWS]} />
+      <planeGeometry args={[cols, rows]} />
       <meshStandardMaterial color="#4f8a5b" />
     </mesh>
   )
 }
 
-function CellLines() {
+function CellLines({ cols, rows }: { cols: number; rows: number }) {
   const geometry = useMemo(() => {
     const positions: number[] = []
     const y = 0.02
-    for (let x = 0; x <= COLS; x++) positions.push(x, y, 0, x, y, ROWS)
-    for (let z = 0; z <= ROWS; z++) positions.push(0, y, z, COLS, y, z)
+    for (let x = 0; x <= cols; x++) positions.push(x, y, 0, x, y, rows)
+    for (let z = 0; z <= rows; z++) positions.push(0, y, z, cols, y, z)
     const geom = new BufferGeometry()
     geom.setAttribute('position', new Float32BufferAttribute(positions, 3))
     return geom
-  }, [])
+  }, [cols, rows])
 
   return (
     <lineSegments geometry={geometry}>
@@ -109,7 +113,19 @@ function PixelMesh({ pixel, onPaint }: { pixel: YardPixel; onPaint: (x: number, 
   )
 }
 
-function Walker({ me, live, onMove }: { me: Person; live: { x: number; z: number }; onMove: (x: number, z: number) => void }) {
+function Walker({
+  me,
+  live,
+  cols,
+  rows,
+  onMove,
+}: {
+  me: Person
+  live: { x: number; z: number }
+  cols: number
+  rows: number
+  onMove: (x: number, z: number) => void
+}) {
   const group = useRef<import('three').Group>(null)
   const keys = useRef<Record<string, boolean>>({})
   const sent = useRef(0)
@@ -140,8 +156,8 @@ function Walker({ me, live, onMove }: { me: Person; live: { x: number; z: number
     if (keys.current['s'] || keys.current['arrowdown']) z += speed
     if (keys.current['a'] || keys.current['arrowleft']) x -= speed
     if (keys.current['d'] || keys.current['arrowright']) x += speed
-    x = Math.min(COLS - 0.3, Math.max(0.3, x))
-    z = Math.min(ROWS - 0.3, Math.max(0.3, z))
+    x = Math.min(cols - 0.3, Math.max(0.3, x))
+    z = Math.min(rows - 0.3, Math.max(0.3, z))
     live.x = x
     live.z = z
     if (group.current) group.current.position.set(x, 0, z)

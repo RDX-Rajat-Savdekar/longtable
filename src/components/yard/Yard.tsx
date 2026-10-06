@@ -4,23 +4,25 @@ import { integration, useMutations, usePresenceRoom, useQuery } from 'deepspace'
 import { SCOPE_ID } from '../../constants'
 import { readCurrentWeather } from '../../table/weather'
 import { DEFAULT_CITY } from '../../table/days'
-import { COLS, HORSE, PAINTS, ROWS, likeness } from '../../yard/horse'
+import { CHEATS, cheatPaints, levelById, likeness, type LevelId } from '../../yard/levels'
 import { skyColor, skyLabel } from '../../yard/sky'
 import { loadWho, makeWho, saveWho, type Who } from '../../yard/who'
 import { YardScene, type Person, type YardPixel } from './Scene'
 import './yard.css'
 
-type BlockData = { x: number; z: number; slot: number; kind: string; color: string }
-type YardData = { sky: string; temp: number; title: string; skyAt: string; titleAt: string }
+type BlockData = { x: number; z: number; slot: number; kind: string; color: string; level?: string }
+type YardData = { sky: string; temp: number; title: string; skyAt: string; titleAt: string; level?: string }
 
 const SKY_MS = 20 * 60 * 1000
+const CELL = 7
 
 export default function Yard() {
   const [who, setWho] = useState<Who>(() => loadWho())
-  const [paint, setPaint] = useState<string>(PAINTS[1].color)
-  const [spot, setSpot] = useState({ x: COLS / 2, z: ROWS / 2 })
+  const [paint, setPaint] = useState<string>(levelById('logo').paints[1].color)
+  const [spot, setSpot] = useState({ x: 8, z: 8 })
   const [note, setNote] = useState('')
-  const live = useRef({ x: COLS / 2, z: ROWS / 2 })
+  const [filling, setFilling] = useState(false)
+  const live = useRef({ x: 8, z: 8 })
 
   const blocksQuery = useQuery<BlockData>('blocks')
   const yardQuery = useQuery<YardData>('yard')
@@ -30,32 +32,36 @@ export default function Yard() {
   const presenceRef = useRef(presence)
   presenceRef.current = presence
   const saving = useRef(false)
+  const level = levelById(yardQuery.records[0]?.data.level || 'logo')
 
   const pixels: YardPixel[] = useMemo(() => {
     const byCell = new Map<string, YardPixel>()
     for (const record of blocksQuery.records) {
       if (record.data.kind !== 'pixel') continue
+      if ((record.data.level || '') !== level.id) continue
       const x = Number(record.data.x)
       const z = Number(record.data.z)
       byCell.set(`${x},${z}`, {
         id: record.recordId,
         x,
         z,
-        color: record.data.color || PAINTS[1].color,
+        color: record.data.color || level.paints[0].color,
       })
     }
     return [...byCell.values()]
-  }, [blocksQuery.records])
+  }, [blocksQuery.records, level])
 
   const painted = useMemo(() => {
-    const cells = Array.from({ length: ROWS * COLS }, () => '')
+    const cells = Array.from({ length: level.rows * level.cols }, () => '')
     for (const pixel of pixels) {
-      if (pixel.x >= 0 && pixel.x < COLS && pixel.z >= 0 && pixel.z < ROWS) cells[pixel.z * COLS + pixel.x] = pixel.color
+      if (pixel.x >= 0 && pixel.x < level.cols && pixel.z >= 0 && pixel.z < level.rows) {
+        cells[pixel.z * level.cols + pixel.x] = pixel.color
+      }
     }
     return cells
-  }, [pixels])
+  }, [pixels, level])
 
-  const match = likeness(pixels)
+  const match = likeness(level, pixels)
   const yard = yardQuery.records[0]
   const skyText = yard?.data.sky || ''
 
@@ -86,9 +92,10 @@ export default function Yard() {
       const data = {
         sky: current.description,
         temp: current.temp,
-        title: 'Horse',
+        title: level.name,
         skyAt: new Date().toISOString(),
         titleAt: yard?.data.titleAt || '',
+        level: level.id,
       }
       if (yard) await yardWrites.putConfirmed(yard.recordId, data)
       else await yardWrites.createConfirmed(data)
@@ -96,7 +103,17 @@ export default function Yard() {
     return () => {
       cancel = true
     }
-  }, [yardWrites.ready, yard?.recordId])
+  }, [yardWrites.ready, yard?.recordId, level.id, level.name])
+
+  useEffect(() => {
+    const next = levelById(level.id)
+    const x = next.cols / 2
+    const z = next.rows / 2
+    live.current.x = x
+    live.current.z = z
+    setSpot({ x, z })
+    setPaint((current) => (next.paints.some((item) => item.color === current) ? current : next.paints[1]?.color || next.paints[0].color))
+  }, [level.id])
 
   const me: Person = { id: who.id, name: who.name, color: who.color, quirk: who.quirk, x: spot.x, z: spot.z }
   const others: Person[] = presence.peers.map((peer) => {
@@ -106,8 +123,8 @@ export default function Yard() {
       name: state.name || peer.userName || 'Friend',
       color: state.color || '#e9c46a',
       quirk: state.quirk || 'waves',
-      x: typeof state.x === 'number' ? state.x : COLS / 2,
-      z: typeof state.z === 'number' ? state.z : ROWS / 2,
+      x: typeof state.x === 'number' ? state.x : level.cols / 2,
+      z: typeof state.z === 'number' ? state.z : level.rows / 2,
     }
   })
 
@@ -118,7 +135,7 @@ export default function Yard() {
     setNote('')
     try {
       if (existing) await blockWrites.removeConfirmed(existing.id)
-      else await blockWrites.createConfirmed({ x, z, slot: 0, kind: 'pixel', color: paint })
+      else await blockWrites.createConfirmed({ x, z, slot: 0, kind: 'pixel', color: paint, level: level.id })
     } catch (cause) {
       setNote(cause instanceof Error ? cause.message : 'The paint did not land.')
     } finally {
@@ -132,7 +149,50 @@ export default function Yard() {
     setWho(next)
   }
 
-  const spawn = { x: COLS / 2 + 5.2, y: 7.4, z: ROWS / 2 + 5.2 }
+  async function chooseLevel(id: LevelId) {
+    if (!yardWrites.ready || saving.current || id === level.id) return
+    const next = levelById(id)
+    const data: YardData = {
+      sky: yard?.data.sky || '',
+      temp: yard?.data.temp || 0,
+      title: next.name,
+      skyAt: yard?.data.skyAt || '',
+      titleAt: yard?.data.titleAt || '',
+      level: id,
+    }
+    saving.current = true
+    try {
+      if (yard) await yardWrites.putConfirmed(yard.recordId, data)
+      else await yardWrites.createConfirmed(data)
+    } catch (cause) {
+      setNote(cause instanceof Error ? cause.message : 'The picture did not change.')
+    } finally {
+      saving.current = false
+    }
+  }
+
+  async function fillTo(percent: number) {
+    if (!blockWrites.ready || saving.current) return
+    saving.current = true
+    setFilling(true)
+    setNote('Filling the picture…')
+    try {
+      const existing = blocksQuery.records.filter((record) => record.data.kind === 'pixel' && (record.data.level || '') === level.id)
+      await pool(existing, (record) => blockWrites.removeConfirmed(record.recordId))
+      const want = cheatPaints(level, percent)
+      await pool(want, (cell) =>
+        blockWrites.createConfirmed({ x: cell.x, z: cell.z, slot: 0, kind: 'pixel', color: cell.color, level: level.id }),
+      )
+      setNote('')
+    } catch (cause) {
+      setNote(cause instanceof Error ? cause.message : 'The fill did not finish.')
+    } finally {
+      saving.current = false
+      setFilling(false)
+    }
+  }
+
+  const spawn = { x: level.cols / 2 + 5.2, y: 7.4, z: level.rows / 2 + 5.2 }
 
   return (
     <div className="yard">
@@ -140,13 +200,15 @@ export default function Yard() {
         style={{ width: '100%', height: '100%' }}
         camera={{ position: [spawn.x, spawn.y, spawn.z], fov: 46 }}
         gl={{ preserveDrawingBuffer: true }}
-        onCreated={({ camera }) => camera.lookAt(COLS / 2, 0, ROWS / 2)}
+        onCreated={({ camera }) => camera.lookAt(level.cols / 2, 0, level.rows / 2)}
       >
         <YardScene
           pixels={pixels}
           me={me}
           others={others}
           sky={skyColor(skyText)}
+          cols={level.cols}
+          rows={level.rows}
           live={live.current}
           onPaint={(x, z) => void paintCell(x, z)}
           onMove={(x, z) => setSpot({ x, z })}
@@ -154,7 +216,7 @@ export default function Yard() {
       </Canvas>
 
       <header className="yard-title">
-        <strong>Paint the horse</strong>
+        <strong>{level.name}</strong>
         <span>{skyText ? `${skyLabel(skyText)}${yard?.data.temp ? `, ${Math.round(yard.data.temp)}°` : ''}` : 'Looking up the sky…'}</span>
       </header>
 
@@ -166,19 +228,19 @@ export default function Yard() {
 
       <aside className="yard-corner">
         <div className="yard-card" aria-label="Where everyone is">
-          <div className="map-board" style={{ gridTemplateColumns: `repeat(${COLS}, 8px)` }}>
+          <div className="map-board" style={{ gridTemplateColumns: `repeat(${level.cols}, ${CELL}px)` }}>
             {painted.map((color, index) => (
               <i key={index} style={{ background: color || '#4f8a5b' }} />
             ))}
-            <MapDot live={live.current} color={who.color} />
+            <MapDot live={live.current} color={who.color} cols={level.cols} rows={level.rows} />
             {others.map((person) => (
               <span
                 key={person.id}
                 className="map-dot"
                 title={person.name}
                 style={{
-                  left: `${(person.x / COLS) * 100}%`,
-                  top: `${(person.z / ROWS) * 100}%`,
+                  left: `${(person.x / level.cols) * 100}%`,
+                  top: `${(person.z / level.rows) * 100}%`,
                   background: person.color,
                 }}
               />
@@ -186,16 +248,16 @@ export default function Yard() {
           </div>
         </div>
 
-        <div className="yard-card" aria-label="The horse to copy">
-          <div className="pixel-art" style={{ gridTemplateColumns: `repeat(${COLS}, 8px)` }}>
-            {HORSE.flat().map((color, index) => (
-              <i key={index} style={{ background: color || '#4f8a5b' }} />
+        <div className="yard-card" aria-label={level.name}>
+          <div className="pixel-art" style={{ gridTemplateColumns: `repeat(${level.cols}, ${CELL}px)` }}>
+            {level.cells.flat().map((color, index) => (
+              <i key={index} style={{ background: color }} />
             ))}
           </div>
-          <div className="likeness" role="meter" aria-valuenow={match} aria-valuemin={0} aria-valuemax={100} aria-label={`${match}% like the horse`}>
+          <div className="likeness" role="meter" aria-valuenow={match} aria-valuemin={0} aria-valuemax={100} aria-label={`${match}% like ${level.picture}`}>
             <span style={{ width: `${match}%` }} />
           </div>
-          <p>{match}% like the horse</p>
+          <p>{match}% like {level.picture}</p>
         </div>
       </aside>
 
@@ -210,18 +272,38 @@ export default function Yard() {
         </button>
       </aside>
 
-      <div className="yard-tools">
-        {PAINTS.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            data-on={paint === item.color}
-            style={{ background: item.color, color: item.id === 'hoof' || item.id === 'shade' ? '#f6f1e6' : '#1c1915' }}
-            onClick={() => setPaint(item.color)}
-          >
-            {item.label}
-          </button>
-        ))}
+      <div className="yard-stack">
+        <div className="yard-cheat">
+          <span>Cheat</span>
+          {CHEATS.map((percent) => (
+            <button key={percent} type="button" disabled={filling} onClick={() => void fillTo(percent)}>
+              {percent}%
+            </button>
+          ))}
+        </div>
+        <div className="yard-levels">
+          {(['logo', 'horse', 'dog'] as LevelId[]).map((id) => {
+            const item = levelById(id)
+            return (
+              <button key={id} type="button" data-on={level.id === id} disabled={filling} onClick={() => void chooseLevel(id)}>
+                {item.name}
+              </button>
+            )
+          })}
+        </div>
+        <div className="yard-tools">
+          {level.paints.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              data-on={paint === item.color}
+              style={{ background: item.color, color: inkOn(item.color) }}
+              onClick={() => setPaint(item.color)}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {note && <p className="yard-note">{note}</p>}
@@ -229,7 +311,7 @@ export default function Yard() {
   )
 }
 
-function MapDot({ live, color }: { live: { x: number; z: number }; color: string }) {
+function MapDot({ live, color, cols, rows }: { live: { x: number; z: number }; color: string; cols: number; rows: number }) {
   const dot = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
@@ -237,14 +319,36 @@ function MapDot({ live, color }: { live: { x: number; z: number }; color: string
     const tick = () => {
       const el = dot.current
       if (el) {
-        el.style.left = `${(live.x / COLS) * 100}%`
-        el.style.top = `${(live.z / ROWS) * 100}%`
+        el.style.left = `${(live.x / cols) * 100}%`
+        el.style.top = `${(live.z / rows) * 100}%`
       }
       frame = requestAnimationFrame(tick)
     }
     frame = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(frame)
-  }, [live])
+  }, [live, cols, rows])
 
   return <span ref={dot} className="map-dot map-dot-me" style={{ background: color }} />
+}
+
+function inkOn(color: string): string {
+  const value = Number.parseInt(color.slice(1), 16)
+  const red = (value >> 16) & 255
+  const green = (value >> 8) & 255
+  const blue = value & 255
+  return red * 0.3 + green * 0.59 + blue * 0.11 > 150 ? '#1c1915' : '#f6f1e6'
+}
+
+async function pool<T>(items: T[], worker: (item: T) => Promise<unknown>) {
+  let index = 0
+  async function next(): Promise<void> {
+    while (index < items.length) {
+      const current = items[index]
+      index += 1
+      await worker(current)
+    }
+  }
+  const workers = Math.min(6, items.length)
+  if (workers === 0) return
+  await Promise.all(Array.from({ length: workers }, () => next()))
 }

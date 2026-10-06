@@ -23,10 +23,10 @@ export default function Landing() {
           className="mt-3 max-w-xl text-5xl text-foreground sm:text-6xl"
           style={{ fontFamily: 'Fraunces, Georgia, serif', fontWeight: 560, lineHeight: 1.05 }}
         >
-          Jump in and paint the horse.
+          Jump in and paint the picture.
         </h1>
         <p className="mt-5 max-w-md text-lg text-muted-foreground">
-          No account. You get a name, a color, and a little habit. Friends walk the same grass and fill in one picture.
+          No account. You get a name, a color, and a little habit. Friends walk the same grass and fill in the logo, the horse, or the dog.
         </p>
         <p className="mt-4 max-w-md text-foreground">
           Walk with W A S D. Pick a color and click a square. The picture in the corner shows what you are making.
