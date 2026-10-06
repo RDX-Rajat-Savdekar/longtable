@@ -31,11 +31,11 @@ function SignedOutPanel() {
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-6 py-20">
-      <div className="w-full max-w-sm rounded-lg border border-border bg-card p-8 text-center">
-        <h1 className="text-lg text-foreground" style={{ fontFamily: 'Fraunces, Georgia, serif' }}>
+      <div className="w-full max-w-sm rounded-lg border border-border bg-card p-8 text-center text-card-foreground">
+        <h1 className="text-lg" style={{ fontFamily: 'Fraunces, Georgia, serif' }}>
           Sign in to sit down
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-2 text-sm opacity-80">
           The table is for people with a seat.
         </p>
         <Button className="mt-6 w-full" onClick={() => setShowAuthModal(true)}>
@@ -43,7 +43,7 @@ function SignedOutPanel() {
         </Button>
         <Link
           to="/"
-          className="mt-4 inline-block text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          className="mt-4 inline-block text-sm opacity-80 underline-offset-4 hover:underline"
         >
           Back to home
         </Link>

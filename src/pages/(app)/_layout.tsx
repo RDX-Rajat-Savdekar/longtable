@@ -16,7 +16,7 @@
  */
 
 import { Suspense, type ReactNode } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import { DeepSpaceAuthProvider, useAuthStatus } from 'deepspace'
 import { RecordProvider, RecordScope } from 'deepspace'
 import Navigation from '../../components/Navigation'
@@ -25,6 +25,7 @@ import { APP_NAME, SCOPE_ID } from '../../constants'
 import { schemas } from '../../schemas'
 
 export default function AppLayout() {
+  const yard = useLocation().pathname === '/yard'
   return (
     <DeepSpaceAuthProvider>
       {/* The prerendered landing owns the document <title> and React drops it
@@ -32,8 +33,8 @@ export default function AppLayout() {
       <title>{APP_NAME}</title>
       <AuthBoot>
         <div className="flex h-screen flex-col bg-background overflow-hidden">
-          <Navigation />
-          <main className="flex min-h-0 flex-1 flex-col overflow-auto">
+          {!yard && <Navigation />}
+          <main className={yard ? 'flex min-h-0 flex-1 flex-col overflow-hidden' : 'flex min-h-0 flex-1 flex-col overflow-auto'}>
             <Suspense fallback={<div className="flex items-center justify-center h-full text-muted-foreground">Loading...</div>}>
               <Outlet />
             </Suspense>

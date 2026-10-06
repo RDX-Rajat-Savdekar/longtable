@@ -1,0 +1,125 @@
+.yard {
+  position: relative;
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  background: #8ecae6;
+  font-family: "Source Sans 3", sans-serif;
+  color: #1c1915;
+}
+
+.yard canvas {
+  display: block;
+}
+
+.yard-title,
+.yard-rules,
+.yard-who,
+.yard-tools,
+.yard-note {
+  position: absolute;
+  z-index: 2;
+}
+
+.yard-title {
+  top: 0.8rem;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  color: #1c1915;
+  text-shadow: 0 1px 0 rgba(246, 241, 230, 0.8);
+}
+
+.yard-title strong {
+  display: block;
+  font-family: Fraunces, Georgia, serif;
+  font-size: 1.7rem;
+  font-weight: 560;
+}
+
+.yard-title span {
+  font-size: 0.9rem;
+}
+
+.yard-rules {
+  top: 0.8rem;
+  left: 0.8rem;
+  background: #f6f1e6;
+  padding: 0.7rem 0.85rem;
+  max-width: 16rem;
+}
+
+.yard-rules p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.yard-rules p + p {
+  margin-top: 0.2rem;
+}
+
+.yard-who {
+  top: 0.8rem;
+  right: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  background: #f6f1e6;
+  padding: 0.45rem 0.6rem;
+}
+
+.yard-who strong,
+.yard-who em {
+  display: block;
+  font-style: normal;
+}
+
+.yard-who em {
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.swatch {
+  width: 0.9rem;
+  height: 1.4rem;
+  border-radius: 999px;
+}
+
+.yard-who button,
+.yard-tools button {
+  background: transparent;
+  border: 1px solid rgba(28, 25, 21, 0.35);
+  color: #1c1915;
+  font: inherit;
+  padding: 0.3rem 0.55rem;
+  cursor: pointer;
+}
+
+.yard-tools {
+  left: 50%;
+  bottom: 0.9rem;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.4rem;
+  background: #f6f1e6;
+  padding: 0.4rem;
+}
+
+.yard-tools button[data-on='true'] {
+  background: #1c1915;
+  color: #f6f1e6;
+}
+
+.yard-tools button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.yard-note {
+  left: 50%;
+  bottom: 4.2rem;
+  transform: translateX(-50%);
+  margin: 0;
+  background: #f6f1e6;
+  padding: 0.3rem 0.6rem;
+}
