@@ -23,13 +23,13 @@ export default function Landing() {
           className="mt-3 max-w-xl text-5xl text-foreground sm:text-6xl"
           style={{ fontFamily: 'Fraunces, Georgia, serif', fontWeight: 560, lineHeight: 1.05 }}
         >
-          Jump in and build the pile.
+          Jump in and paint the horse.
         </h1>
         <p className="mt-5 max-w-md text-lg text-muted-foreground">
-          No account. You get a name, a color, and a little habit. Friends walk the same grass and stack blocks together.
+          No account. You get a name, a color, and a little habit. Friends walk the same grass and fill in one picture.
         </p>
         <p className="mt-4 max-w-md text-foreground">
-          Walk with W A S D. Click the grass to add a block. Click a block to take the top one off.
+          Walk with W A S D. Pick a color and click a square. The picture in the corner shows what you are making.
         </p>
         <Link to="/yard" className="mt-8 inline-block w-fit border border-border px-4 py-2 text-foreground">
           Jump in

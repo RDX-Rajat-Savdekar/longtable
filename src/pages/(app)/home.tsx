@@ -10,7 +10,7 @@ export default function HomePage() {
         The yard is open.
       </h1>
       <p className="max-w-md text-muted-foreground">
-        Walk in, pick up a color, and add a block to the pile. No account.
+        Walk in, pick a color, and paint the horse together. No account.
       </p>
       <Link to="/yard" className="w-fit border border-border px-4 py-2">
         Jump in

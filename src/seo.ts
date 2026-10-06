@@ -23,7 +23,7 @@ declare const __DEEPSPACE_SITE_ORIGIN__: string | undefined
 
 export const seo = {
   title: 'Longtable',
-  description: 'A shared yard where friends walk in without an account and build one block pile together.',
+  description: 'A shared yard where friends walk in without an account and paint one picture together.',
   /** Public origin for canonical URLs, og:url, and the sitemap — no trailing
    *  slash. Replace with the custom domain once one is attached, e.g.
    *  'https://www.example.com'. */

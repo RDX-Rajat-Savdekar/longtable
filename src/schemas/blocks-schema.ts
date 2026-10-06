@@ -2,7 +2,7 @@ import type { CollectionSchema } from 'deepspace/schema'
 
 const open = { read: true, create: true, update: false, delete: true } as const
 
-/** Shared blocks. Anyone in the yard can add one or take a top block off. */
+/** Shared pixels. Anyone in the yard can paint a square or clear it. */
 export const blocksSchema: CollectionSchema = {
   name: 'blocks',
   columns: [

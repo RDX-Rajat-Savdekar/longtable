@@ -2,17 +2,17 @@
 
 Friends open one link and walk into the same grass. There is no account. Each browser gets a name, a color, and a small habit like "hums" or "waves."
 
-Walk with W A S D. Click the grass to add a cube, a slab, or a light. Click a block to take the top one off that stack. The pile stays when people leave.
+The grass is a pixel picture of a horse. Walk with W A S D. The camera follows you. Pick a color and click a square to paint it. Click a painted square to clear it. The horse to copy sits in the corner, and the bar under it is how close the paint is.
 
-The sky is the live weather in San Francisco (`openweathermap/current`). **Name the pile** asks Claude for a short name from the blocks that are actually there (`anthropic/chat-completion`). Mail is gone, because nobody has an address.
+The sky is the live weather in San Francisco (`openweathermap/current`).
 
 ## The cut
 
-One yard, not a set of worlds. Anyone can take a block off, because there is no account to prove who placed it. The name and the sky wait a bit before they can run again, so a refresh does not spend on every visit.
+One picture, not a set of worlds. Anyone can clear a square, because there is no account to prove who painted it. The sky waits a bit before it can run again, so a refresh does not spend on every visit.
 
 ## What was checked
 
-The stack rules were run: a block stays inside the grass, a slab sits on the cube under it, and a column stops at six. The yard was opened without signing in. A click on the grass set a block down, another click stacked one on top, and a click on a block took that column's top off. The name and habit showed over the person. The sky read clear and 65°. Naming the pile returned "Lonely Single Block".
+An empty canvas scores 0. Painting every square of the horse the right color scores 100. A wrong color scores nothing, and paint on the grass lowers the score.
 
 ## Still to click
 
